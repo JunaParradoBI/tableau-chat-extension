@@ -1,62 +1,52 @@
-// ========= CONFIG =========
-// Pon aquí tu backend (Fase 3). Por ahora puede quedar así.
-const BACKEND_URL = "https://TU-BACKEND.com/ask";
+// ==============================
+// app.js (HÍBRIDO)
+// - Funciona como Web Page (Tableau Public) ✅
+// - Si algún día lo usas como Extension real, también ✅
+// ==============================
 
-// ========= UI ELEMENTS =========
+const BACKEND_URL = "https://TU-BACKEND.com/ask"; // Fase 3
+
 const statusEl = document.getElementById("status");
 const logEl = document.getElementById("log");
 const inputEl = document.getElementById("question");
 const sendBtn = document.getElementById("send");
 
-// ========= HELPERS =========
 function log(msg) {
   logEl.textContent += `\n${msg}`;
   logEl.scrollTop = logEl.scrollHeight;
 }
 
-function isInsideTableau() {
+function isInsideTableauExtension() {
   return typeof tableau !== "undefined" && tableau.extensions;
 }
 
-// ========= MAIN =========
+// ---------- INIT ----------
 async function init() {
+  // Listeners siempre (en Web Page y en Extension)
+  sendBtn.addEventListener("click", onSend);
+  inputEl.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") onSend();
+  });
+
+  // Si NO está dentro de Tableau Extension, estamos en modo Web Page
+  if (!isInsideTableauExtension()) {
+    statusEl.textContent = "Chat listo ✅ (modo Web Page / Tableau Public)";
+    log("Nota: estás en modo Web Page (no Extension). Esto está bien para Tableau Public.");
+    return;
+  }
+
+  // Si SÍ está dentro de Tableau Extension
   try {
-    // Si abres la URL en el navegador normal, esto NO debe fallar.
-    if (!isInsideTableau()) {
-      statusEl.textContent =
-        "Esta página solo funciona dentro de Tableau como Extension. Aquí estás viendo la versión web.";
-      log(
-        "Tip: para probarlo, inserta el archivo .trex en un dashboard como Extension (no se prueba abriendo la URL sola)."
-      );
-
-      // Aún así dejamos el chat usable para testear UI sin Tableau
-      sendBtn.addEventListener("click", onSend);
-      inputEl.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") onSend();
-      });
-
-      return;
-    }
-
-    // Inicializa la Extensions API cuando sí está dentro de Tableau
     await tableau.extensions.initializeAsync();
-
     statusEl.textContent = "Listo ✅ (Extension inicializada)";
-    log("Extension inicializada. Ya puedes enviar preguntas.");
-
-    // Listeners
-    sendBtn.addEventListener("click", onSend);
-    inputEl.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") onSend();
-    });
-
+    log("Extension inicializada.");
   } catch (err) {
-    statusEl.textContent = "No se pudo inicializar la Extensions API ❌";
-    log("ERROR init: " + (err?.message || err));
+    statusEl.textContent = "No se pudo inicializar Extensions API ❌";
+    log("ERROR init Extension: " + (err?.message || err));
   }
 }
 
-// ========= SEND =========
+// ---------- SEND ----------
 async function onSend() {
   const question = inputEl.value.trim();
   if (!question) return;
@@ -64,21 +54,28 @@ async function onSend() {
   inputEl.value = "";
   log(`Usuario: ${question}`);
 
-  // Payload mínimo. Más adelante agregamos contexto del dashboard.
+  // Payload mínimo (más adelante meteremos parámetros, etc.)
   const payload = {
     question,
     meta: {
-      inside_tableau: isInsideTableau(),
+      inside_extension: isInsideTableauExtension(),
       ts: new Date().toISOString(),
     },
   };
 
-  // Si aún no tienes backend, puedes mockear la respuesta con este bloque:
-  // const mock = { metric: "Sales", dimension: "Region", years: [2024, 2025], chart_type: "bar" };
-  // log(`Backend(MOCK): ${JSON.stringify(mock, null, 2)}`);
-  // statusEl.textContent = "Listo ✅";
-  // return;
+  // ✅ Por ahora: MOCK para confirmar que el chat funciona
+  const mock = {
+    metric: "Sales",
+    dimension: "Region",
+    years: [2024, 2025],
+    chart_type: "bar",
+  };
+  log(`Backend(MOCK): ${JSON.stringify(mock, null, 2)}`);
+  statusEl.textContent = "Listo ✅ (mock)";
+  return;
 
+  // Cuando tengas backend, borras el bloque MOCK de arriba y descomentas esto:
+  /*
   try {
     statusEl.textContent = "Consultando…";
 
@@ -97,12 +94,12 @@ async function onSend() {
     log(`Backend: ${JSON.stringify(data, null, 2)}`);
 
     statusEl.textContent = "Listo ✅";
-
   } catch (err) {
     statusEl.textContent = "Error consultando backend ❌";
     log("ERROR backend: " + (err?.message || err));
   }
+  */
 }
 
-// ========= RUN =========
 init();
+
