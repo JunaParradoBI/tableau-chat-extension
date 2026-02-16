@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<dashboard-extension xmlns="http://tableau.com/dashboard-extension"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+  <name>Chat BI (Gemini)</name>
+  <description>Chat embebido que envía preguntas al backend.</description>
+  <author name="Joseph" email="tu_correo@dominio.com" organization="Personal" />
+
+  <min-api-version>1.1</min-api-version>
+
+  <source-location>
+    <url>https://TU-DOMINIO.com/index.html</url>
+  </source-location>
+
+  <permissions>
+    <permission>full data</permission>
+  </permissions>
+</dashboard-extension>
